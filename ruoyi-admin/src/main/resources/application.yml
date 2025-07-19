@@ -47,6 +47,9 @@ user:
 
 # Spring配置
 spring:
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
   # 资源信息
   messages:
     # 国际化资源文件路径
@@ -93,7 +96,7 @@ token:
   # 令牌自定义标识
   header: Authorization
   # 令牌密钥
-  secret: N223UBdas43df3FGDhdAHU34543AIDUSADdas
+  secret: N223UBdas43df3FGDhdAHU34543AIDUSADdasjhioNIUHUI757656GYUGYBYGYVbyftv6645gcrRDTCTCTY66r56
   # 令牌有效期（默认30分钟）
   expireTime: 30
 
