@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.touki.mapper.EvaluateOrderMapper">
+
+    <resultMap type="com.ruoyi.touki.domain.EvaluateOrder" id="EvaluateOrderResult">
+        <id property="orderId" column="order_id"/>
+        <result property="evaluatedPersonName" column="evaluated_person_name"/>
+        <result property="evaluatedPersonDepartment" column="evaluated_person_department"/>
+        <result property="deadline" column="deadline"/>
+        <result property="remark" column="remark"/>
+        <result property="status" column="status"/>
+        <result property="deleted" column="deleted"/>
+        <result property="createTime" column="create_time"/>
+        <result property="createBy" column="create_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="updateBy" column="update_by"/>
+
+    </resultMap>
+    <insert id="insertOrder" parameterType="com.ruoyi.touki.domain.EvaluateOrder" keyProperty="orderId">
+        insert into evaluate_order(order_id, evaluated_person_name, evaluated_person_department, deadline, status, remark, deleted, create_time, create_by,
+                                   update_time, update_by)
+        values (#{orderId}, #{evaluatedPersonName}, #{evaluatedPersonDepartment}, #{deadline}, #{status}, #{remark}, #{deleted}, #{createTime}, #{createBy},
+                #{updateTime}, #{updateBy})
+    </insert>
+    <update id="updateOrder" parameterType="com.ruoyi.touki.domain.EvaluateOrder">
+        update evaluate_order
+        <set>
+            <if test="evaluatedPersonName != null and evaluatedPersonName != ''">
+                evaluated_person_name = #{evaluatedPersonName},
+            </if>
+            <if test="evaluatedPersonDepartment != null and evaluatedPersonDepartment != ''">
+                evaluated_person_department = #{evaluatedPersonDepartment},
+            </if>
+            <if test="deadline != null">
+                deadline = #{deadline},
+            </if>
+            <if test="remark != null and remark != ''">
+                remark = #{remark},
+            </if>
+            <if test="deleted != null">
+                deleted = #{deleted},
+            </if>
+        </set>
+        where order_id = #{orderId}
+    </update>
+    <delete id="deleteByIds" parameterType="long">
+        update evaluate_order set deleted = true where order_id in
+        <foreach collection="ids" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+    <select id="selectList" parameterType="com.ruoyi.touki.domain.EvaluateOrder" resultMap="EvaluateOrderResult">
+        select * from evaluate_order
+        <where>
+            <if test="orderId != null">
+                order_id = #{orderId}
+            </if>
+            <if test="evaluatedPersonName != null and evaluatedPersonName != ''">
+                evaluated_person_name like #{evaluatedPersonName}
+            </if>
+            <if test="evaluatedPersonDepartment != null and evaluatedPersonDepartment != ''">
+                evaluated_person_department like #{evaluatedPersonDepartment}
+            </if>
+            <if test="deadline != null">
+                deadline = #{deadline}
+            </if>
+            <if test="remark != null and remark != ''">
+                remark like #{remark}
+            </if>
+            <if test="status != null">
+                status = #{status}
+            </if>
+            <if test="deleted != null">
+                deleted = #{deleted}
+            </if>
+
+        </where>
+    </select>
+    <select id="selectById" resultMap="EvaluateOrderResult" parameterType="long">
+        select *
+        from evaluate_order
+        where order_id = #{orderId}
+    </select>
+
+
+</mapper>
