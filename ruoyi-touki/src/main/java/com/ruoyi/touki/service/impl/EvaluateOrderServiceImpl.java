@@ -1,7 +1,9 @@
 package com.ruoyi.touki.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.ruoyi.touki.constant.EvaluateStatus;
 import com.ruoyi.touki.domain.EvaluateOrder;
 import com.ruoyi.touki.mapper.EvaluateOrderMapper;
 import com.ruoyi.touki.service.EvaluateOrderService;
@@ -66,5 +68,12 @@ public class EvaluateOrderServiceImpl extends ServiceImpl<EvaluateOrderMapper, E
         } else {
             return 0;
         }
+    }
+
+    @Override
+    public boolean publish(Long orderId) {
+        LambdaUpdateWrapper<EvaluateOrder> updateWrapper = new LambdaUpdateWrapper<EvaluateOrder>().eq(EvaluateOrder::getOrderId, orderId);
+        updateWrapper.set(EvaluateOrder::getStatus, EvaluateStatus.STATUS_PUBLISHED);
+        return update(updateWrapper);
     }
 }

@@ -62,4 +62,15 @@ public class EvaluateOrderController extends BaseController {
             return error("修改评议单'" + evaluateOrder.getOrderId() + "'失败，请联系管理员");
         }
     }
+
+    @PostMapping("publish")
+    @PreAuthorize("@ss.hasPermi('evaluate:order:update')")
+    @Log(title = "评议单管理", businessType = BusinessType.PUBLISH)
+    public AjaxResult publish(@RequestParam Long orderId) {
+        if(evaluateOrderService.publish(orderId)){
+            return success();
+        }else{
+            return error("发布评议单'" + orderId + "'失败，请联系管理员");
+        }
+    }
 }

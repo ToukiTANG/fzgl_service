@@ -18,4 +18,6 @@ public interface EvaluateOrderService extends IService<EvaluateOrder> {
     EvaluateOrder selectById(Long orderId);
 
     int updateOrder(EvaluateOrder evaluateOrder);
+
+    boolean publish(Long orderId);
 }
