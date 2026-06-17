@@ -17,10 +17,28 @@ import java.time.LocalDate;
 public class EvaluateOrder extends MyBaseEntity {
     @TableId(type = IdType.ASSIGN_ID)
     private Long orderId;
+    /**
+     * 评议事项名称
+     */
     private String evaluateName;
+    /**
+     * 被评议人姓名
+     */
     private String evaluatedPersonName;
+    /**
+     * 被评议人部门
+     */
     private String evaluatedPersonDepartment;
+    /**
+     * 评议截止日期
+     */
     private LocalDate deadline;
+    /**
+     * 评议单状态
+     */
     private Integer status;
+    /**
+     * 备注
+     */
     private String remark;
 }
