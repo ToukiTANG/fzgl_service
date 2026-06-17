@@ -29,7 +29,7 @@ public class EvaluateOrderController extends BaseController {
     public TableDataInfo list(EvaluateOrder evaluateOrder) {
         evaluateOrder.setDeleted(false);
         startPage();
-        List<EvaluateOrder> list = evaluateOrderService.selectList(evaluateOrder);
+        List<EvaluateOrder> list = evaluateOrderService.selectOrderList(evaluateOrder);
         return getDataTable(list);
     }
 

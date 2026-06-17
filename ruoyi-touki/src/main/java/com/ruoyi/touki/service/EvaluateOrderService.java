@@ -1,5 +1,6 @@
 package com.ruoyi.touki.service;
 
+import com.baomidou.mybatisplus.extension.service.IService;
 import com.ruoyi.touki.domain.EvaluateOrder;
 
 import java.util.List;
@@ -7,8 +8,8 @@ import java.util.List;
 /**
  * @author Touki
  */
-public interface EvaluateOrderService {
-    List<EvaluateOrder> selectList(EvaluateOrder evaluateOrder);
+public interface EvaluateOrderService extends IService<EvaluateOrder> {
+    List<EvaluateOrder> selectOrderList(EvaluateOrder evaluateOrder);
 
     int insertOrder(EvaluateOrder evaluateOrder);
 
