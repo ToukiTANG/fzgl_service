@@ -22,9 +22,9 @@ public class MyMetaObjectHandler implements MetaObjectHandler {
 
         this.strictInsertFill(metaObject, "updateTime", Date.class, new Date());
 
-        this.strictInsertFill(metaObject, "createBy", String.class, username);
+        this.strictInsertFill(metaObject, "createBy", String.class, username == null ? "user" : username);
 
-        this.strictInsertFill(metaObject, "updateBy", String.class, username);
+        this.strictInsertFill(metaObject, "updateBy", String.class, username == null ? "user" : username);
     }
 
     @Override
@@ -32,6 +32,6 @@ public class MyMetaObjectHandler implements MetaObjectHandler {
         String username = SecurityUtils.getUsername();
         this.strictUpdateFill(metaObject, "updateTime", Date.class, new Date());
 
-        this.strictUpdateFill(metaObject, "updateBy", String.class, username);
+        this.strictUpdateFill(metaObject, "updateBy", String.class, username == null ? "user" : username);
     }
 }
