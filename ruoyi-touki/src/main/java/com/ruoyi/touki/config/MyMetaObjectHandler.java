@@ -10,13 +10,11 @@ import java.util.Date;
 @Component
 public class MyMetaObjectHandler implements MetaObjectHandler {
     public MyMetaObjectHandler() {
-        System.out.println("======== MyMetaObjectHandler Loaded ========");
     }
 
 
     @Override
     public void insertFill(MetaObject metaObject) {
-        System.out.println("======== insertFill ========");
         String username = SecurityUtils.getUsername();
         this.strictInsertFill(metaObject, "createTime", Date.class, new Date());
 
