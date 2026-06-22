@@ -2,6 +2,7 @@ package com.ruoyi.touki.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.ruoyi.touki.domain.EvaluateOrder;
+import com.ruoyi.touki.domain.EvaluateOrderCode;
 import com.ruoyi.touki.domain.vo.EvaluateOrderVO;
 
 import java.util.List;
@@ -20,5 +21,7 @@ public interface EvaluateOrderService extends IService<EvaluateOrder> {
 
     int updateOrder(EvaluateOrderVO evaluateOrder);
 
-    boolean publish(Long orderId);
+    boolean publish(Long orderId, Integer codeNum, Integer codeCount);
+
+    List<EvaluateOrderCode> codeInfo(Long orderId);
 }

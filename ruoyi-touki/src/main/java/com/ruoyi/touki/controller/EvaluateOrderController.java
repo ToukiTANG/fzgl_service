@@ -6,6 +6,7 @@ import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.core.page.TableDataInfo;
 import com.ruoyi.common.enums.BusinessType;
 import com.ruoyi.touki.domain.EvaluateOrder;
+import com.ruoyi.touki.domain.EvaluateOrderCode;
 import com.ruoyi.touki.domain.vo.EvaluateOrderVO;
 import com.ruoyi.touki.service.EvaluateOrderService;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -69,11 +70,18 @@ public class EvaluateOrderController extends BaseController {
     @PostMapping("publish")
     @PreAuthorize("@ss.hasPermi('evaluate:order:update')")
     @Log(title = "评议单管理", businessType = BusinessType.PUBLISH)
-    public AjaxResult publish(@RequestParam Long orderId) {
-        if(evaluateOrderService.publish(orderId)){
+    public AjaxResult publish(@RequestParam Long orderId, @RequestParam Integer codeNum, @RequestParam Integer codeCount) {
+        if (evaluateOrderService.publish(orderId, codeNum, codeCount)) {
             return success();
-        }else{
+        } else {
             return error("发布评议单'" + orderId + "'失败，请联系管理员");
         }
+    }
+
+    @GetMapping("codeInfo")
+    @PreAuthorize("@ss.hasPermi('evaluate:order:codeInfo')")
+    public AjaxResult codeInfo(@RequestParam Long orderId) {
+        List<EvaluateOrderCode> orderCode = evaluateOrderService.codeInfo(orderId);
+        return success(orderCode);
     }
 }

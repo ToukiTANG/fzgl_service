@@ -7,13 +7,16 @@ import com.ruoyi.touki.constant.EvaluateStatus;
 import com.ruoyi.touki.domain.EvaluateItem;
 import com.ruoyi.touki.domain.EvaluateItemOption;
 import com.ruoyi.touki.domain.EvaluateOrder;
+import com.ruoyi.touki.domain.EvaluateOrderCode;
 import com.ruoyi.touki.domain.vo.EvaluateItemVO;
 import com.ruoyi.touki.domain.vo.EvaluateOrderVO;
 import com.ruoyi.touki.mapper.EvaluateOrderMapper;
 import com.ruoyi.touki.service.EvaluateItemOptionService;
 import com.ruoyi.touki.service.EvaluateItemService;
+import com.ruoyi.touki.service.EvaluateOrderCodeService;
 import com.ruoyi.touki.service.EvaluateOrderService;
 import com.ruoyi.touki.utils.BeanUtil;
+import com.ruoyi.touki.utils.RandomUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,10 +36,13 @@ public class EvaluateOrderServiceImpl extends ServiceImpl<EvaluateOrderMapper, E
 
     private final EvaluateItemService evaluateItemService;
     private final EvaluateItemOptionService evaluateItemOptionService;
+    private final EvaluateOrderCodeService evaluateOrderCodeService;
 
-    public EvaluateOrderServiceImpl(EvaluateItemService evaluateItemService, EvaluateItemOptionService evaluateItemOptionService) {
+    public EvaluateOrderServiceImpl(EvaluateItemService evaluateItemService, EvaluateItemOptionService evaluateItemOptionService,
+                                    EvaluateOrderCodeService evaluateOrderCodeService) {
         this.evaluateItemService = evaluateItemService;
         this.evaluateItemOptionService = evaluateItemOptionService;
+        this.evaluateOrderCodeService = evaluateOrderCodeService;
     }
 
     @Override
@@ -162,9 +168,29 @@ public class EvaluateOrderServiceImpl extends ServiceImpl<EvaluateOrderMapper, E
     }
 
     @Override
-    public boolean publish(Long orderId) {
+    @Transactional(rollbackFor = Exception.class)
+    public boolean publish(Long orderId, Integer codeNum, Integer codeCount) {
+
+        List<EvaluateOrderCode> orderCodes = new ArrayList<>();
+        for (int i = 0; i < codeNum; i++) {
+            String code = RandomUtil.randomUpperAndNumber(6);
+            EvaluateOrderCode orderCode = new EvaluateOrderCode();
+            orderCode.setCode(code);
+            orderCode.setOrderId(orderId);
+            orderCode.setCount(codeCount);
+            orderCodes.add(orderCode);
+        }
+        evaluateOrderCodeService.saveBatch(orderCodes);
+
         LambdaUpdateWrapper<EvaluateOrder> updateWrapper = new LambdaUpdateWrapper<EvaluateOrder>().eq(EvaluateOrder::getOrderId, orderId);
         updateWrapper.set(EvaluateOrder::getStatus, EvaluateStatus.STATUS_PUBLISHED);
         return update(updateWrapper);
+    }
+
+    @Override
+    public List<EvaluateOrderCode> codeInfo(Long orderId) {
+        LambdaQueryWrapper<EvaluateOrderCode> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(EvaluateOrderCode::getOrderId, orderId);
+        return evaluateOrderCodeService.list(queryWrapper);
     }
 }
