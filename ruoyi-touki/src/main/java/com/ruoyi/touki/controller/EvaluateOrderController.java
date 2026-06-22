@@ -6,6 +6,7 @@ import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.core.page.TableDataInfo;
 import com.ruoyi.common.enums.BusinessType;
 import com.ruoyi.touki.domain.EvaluateOrder;
+import com.ruoyi.touki.domain.vo.EvaluateOrderVO;
 import com.ruoyi.touki.service.EvaluateOrderService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -36,8 +37,9 @@ public class EvaluateOrderController extends BaseController {
     @PostMapping("add")
     @PreAuthorize("@ss.hasPermi('evaluate:order:add')")
     @Log(title = "评议单管理", businessType = BusinessType.INSERT)
-    public AjaxResult add(@RequestBody EvaluateOrder evaluateOrder) {
-        return toAjax(evaluateOrderService.insertOrder(evaluateOrder));
+    public AjaxResult add(@RequestBody EvaluateOrderVO evaluateOrderVO) {
+
+        return toAjax(evaluateOrderService.insertOrder(evaluateOrderVO));
     }
 
     @PostMapping("remove")
@@ -49,17 +51,18 @@ public class EvaluateOrderController extends BaseController {
 
     @GetMapping("getByOrderId")
     public AjaxResult getById(@RequestParam Long orderId) {
+
         return success(evaluateOrderService.selectById(orderId));
     }
 
     @PostMapping("update")
     @PreAuthorize("@ss.hasPermi('evaluate:order:update')")
     @Log(title = "评议单管理", businessType = BusinessType.UPDATE)
-    public AjaxResult update(@RequestBody EvaluateOrder evaluateOrder) {
-        if (evaluateOrderService.updateOrder(evaluateOrder) > 0) {
+    public AjaxResult update(@RequestBody EvaluateOrderVO evaluateOrderVO) {
+        if (evaluateOrderService.updateOrder(evaluateOrderVO) > 0) {
             return success();
         } else {
-            return error("修改评议单'" + evaluateOrder.getOrderId() + "'失败，请联系管理员");
+            return error("修改评议单'" + evaluateOrderVO.getOrderId() + "'失败，请联系管理员");
         }
     }
 

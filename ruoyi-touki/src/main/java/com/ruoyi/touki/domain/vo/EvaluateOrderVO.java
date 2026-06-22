@@ -1,0 +1,44 @@
+package com.ruoyi.touki.domain.vo;
+
+import com.ruoyi.touki.domain.MyBaseEntity;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+
+import java.time.LocalDate;
+import java.util.List;
+
+@Data
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
+public class EvaluateOrderVO extends MyBaseEntity{
+    private Long orderId;
+    /**
+     * 评议事项名称
+     */
+    private String evaluateName;
+    /**
+     * 被评议人姓名
+     */
+    private String evaluatedPersonName;
+    /**
+     * 被评议人部门
+     */
+    private String evaluatedPersonDepartment;
+    /**
+     * 评议截止日期
+     */
+    private LocalDate deadline;
+    /**
+     * 评议单状态
+     */
+    private Integer status;
+    /**
+     * 备注
+     */
+    private String remark;
+    /**
+     * 评议内容
+     */
+    List<EvaluateItemVO> items;
+}

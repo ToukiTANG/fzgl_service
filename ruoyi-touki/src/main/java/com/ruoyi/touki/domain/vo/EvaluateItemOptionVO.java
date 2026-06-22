@@ -1,16 +1,14 @@
-package com.ruoyi.touki.domain;
+package com.ruoyi.touki.domain.vo;
 
-import com.baomidou.mybatisplus.annotation.TableId;
+import com.ruoyi.touki.domain.MyBaseEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-@ToString
-public class EvaluateItemOption extends MyBaseEntity {
-
-    @TableId
+@ToString(callSuper = true)
+public class EvaluateItemOptionVO extends MyBaseEntity {
     private Long optionId;
 
     /**

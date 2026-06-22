@@ -1,15 +1,17 @@
-package com.ruoyi.touki.domain;
+package com.ruoyi.touki.domain.vo;
 
-import com.baomidou.mybatisplus.annotation.TableId;
+import com.ruoyi.touki.domain.EvaluateItemOption;
+import com.ruoyi.touki.domain.MyBaseEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
+import java.util.List;
+
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class EvaluateItem extends MyBaseEntity {
-    @TableId
+public class EvaluateItemVO extends MyBaseEntity {
     private Long itemId;
     /*
     评议单id
@@ -31,4 +33,6 @@ public class EvaluateItem extends MyBaseEntity {
      * 排序
      */
     private Integer sortNum;
+
+    List<EvaluateItemOption>  options;
 }
