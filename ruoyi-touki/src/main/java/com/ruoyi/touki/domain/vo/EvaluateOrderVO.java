@@ -14,6 +14,10 @@ import java.util.List;
 public class EvaluateOrderVO extends MyBaseEntity{
     private Long orderId;
     /**
+     * 中间码
+     */
+    private String intermediateCode;
+    /**
      * 评议事项名称
      */
     private String evaluateName;

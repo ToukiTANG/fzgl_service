@@ -18,6 +18,10 @@ public class EvaluateOrder extends MyBaseEntity {
     @TableId(type = IdType.ASSIGN_ID)
     private Long orderId;
     /**
+     * 中间码
+     */
+    private String intermediateCode;
+    /**
      * 评议事项名称
      */
     private String evaluateName;

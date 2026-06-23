@@ -24,4 +24,8 @@ public interface EvaluateOrderService extends IService<EvaluateOrder> {
     boolean publish(Long orderId, Integer codeNum, Integer codeCount);
 
     List<EvaluateOrderCode> codeInfo(Long orderId);
+
+    boolean verificationCode(String intermediateCode, String randomCode);
+
+    EvaluateOrderVO selectOneByIntermediateCode(String intermediateCode);
 }

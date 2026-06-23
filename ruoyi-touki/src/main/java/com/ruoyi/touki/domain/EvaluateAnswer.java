@@ -1,7 +1,6 @@
 package com.ruoyi.touki.domain;
 
 import com.baomidou.mybatisplus.annotation.TableId;
-import com.ruoyi.common.core.domain.BaseEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -9,9 +8,9 @@ import lombok.ToString;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class EvaluateRecord extends BaseEntity {
+public class EvaluateAnswer extends MyBaseEntity {
     @TableId
-    private Long recordId;
+    private Long answerId;
     /**
      * 回执单id
      */
