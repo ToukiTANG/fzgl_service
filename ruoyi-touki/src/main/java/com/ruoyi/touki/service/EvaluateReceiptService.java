@@ -2,6 +2,7 @@ package com.ruoyi.touki.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.ruoyi.touki.domain.EvaluateReceipt;
+import com.ruoyi.touki.domain.vo.EvaluateExport;
 import com.ruoyi.touki.domain.vo.EvaluateReceiptVO;
 import com.ruoyi.touki.domain.vo.TestPaper;
 
@@ -13,4 +14,6 @@ public interface EvaluateReceiptService extends IService<EvaluateReceipt> {
     List<EvaluateReceipt> selectReceiptList(EvaluateReceipt receipt);
 
     TestPaper selectReceiptDetailById(Long receiptId);
+
+    List<EvaluateExport> export(EvaluateReceipt receipt);
 }
