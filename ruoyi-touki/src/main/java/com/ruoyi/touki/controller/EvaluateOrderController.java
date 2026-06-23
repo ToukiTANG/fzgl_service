@@ -29,7 +29,6 @@ public class EvaluateOrderController extends BaseController {
     @GetMapping("list")
     @PreAuthorize("@ss.hasPermi('evaluate:order:list')")
     public TableDataInfo list(EvaluateOrder evaluateOrder) {
-        evaluateOrder.setDeleted(false);
         startPage();
         List<EvaluateOrder> list = evaluateOrderService.selectOrderList(evaluateOrder);
         return getDataTable(list);

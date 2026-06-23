@@ -1,24 +1,31 @@
 package com.ruoyi.touki.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.ruoyi.touki.domain.EvaluateAnswer;
 import com.ruoyi.touki.domain.EvaluateReceipt;
+import com.ruoyi.touki.domain.vo.EvaluateOrderVO;
 import com.ruoyi.touki.domain.vo.EvaluateReceiptVO;
+import com.ruoyi.touki.domain.vo.TestPaper;
 import com.ruoyi.touki.mapper.EvaluateReceiptMapper;
 import com.ruoyi.touki.service.EvaluateAnswerService;
+import com.ruoyi.touki.service.EvaluateOrderService;
 import com.ruoyi.touki.service.EvaluateReceiptService;
 import com.ruoyi.touki.utils.BeanUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ObjectUtils;
 
 import java.util.List;
 
 @Service
 public class EvaluateReceiptServiceImpl extends ServiceImpl<EvaluateReceiptMapper, EvaluateReceipt> implements EvaluateReceiptService {
     private final EvaluateAnswerService answerService;
+    private final EvaluateOrderService orderService;
 
-    public EvaluateReceiptServiceImpl(EvaluateAnswerService answerService) {
+    public EvaluateReceiptServiceImpl(EvaluateAnswerService answerService, EvaluateOrderService orderService) {
         this.answerService = answerService;
+        this.orderService = orderService;
     }
 
     @Override
@@ -30,5 +37,33 @@ public class EvaluateReceiptServiceImpl extends ServiceImpl<EvaluateReceiptMappe
         List<EvaluateAnswer> answers = receiptVO.getAnswers();
         answers.forEach(answer -> answer.setReceiptId(receipt.getReceiptId()));
         answerService.saveBatch(answers);
+    }
+
+    @Override
+    public List<EvaluateReceipt> selectReceiptList(EvaluateReceipt receipt) {
+        LambdaQueryWrapper<EvaluateReceipt> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(!ObjectUtils.isEmpty(receipt.getReceiptId()), EvaluateReceipt::getReceiptId, receipt.getReceiptId());
+        queryWrapper.eq(!ObjectUtils.isEmpty(receipt.getOrderId()), EvaluateReceipt::getOrderId, receipt.getOrderId());
+        queryWrapper.eq(!ObjectUtils.isEmpty(receipt.getIntermediateCode()), EvaluateReceipt::getIntermediateCode, receipt.getIntermediateCode());
+        queryWrapper.eq(!ObjectUtils.isEmpty(receipt.getRandomCode()), EvaluateReceipt::getRandomCode, receipt.getRandomCode());
+        return list(queryWrapper);
+    }
+
+    @Override
+    public TestPaper selectReceiptDetailById(Long receiptId) {
+        EvaluateReceipt receipt = getById(receiptId);
+        EvaluateReceiptVO receiptVO = BeanUtil.copy(receipt, EvaluateReceiptVO.class);
+
+        LambdaQueryWrapper<EvaluateAnswer> answerWrapper = new LambdaQueryWrapper<>();
+        answerWrapper.eq(EvaluateAnswer::getReceiptId, receiptId);
+        List<EvaluateAnswer> list = answerService.list(answerWrapper);
+        receiptVO.setAnswers(list);
+
+        EvaluateOrderVO orderVO = orderService.selectById(receipt.getOrderId());
+
+        TestPaper paper = new TestPaper();
+        paper.setOrder(orderVO);
+        paper.setReceipt(receiptVO);
+        return paper;
     }
 }
