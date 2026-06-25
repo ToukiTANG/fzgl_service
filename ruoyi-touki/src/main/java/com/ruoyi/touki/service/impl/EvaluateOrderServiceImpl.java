@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author Touki
@@ -155,6 +156,15 @@ public class EvaluateOrderServiceImpl extends ServiceImpl<EvaluateOrderMapper, E
         List<EvaluateItemVO> oldItemVOS = oldOrderVO.getItems();
         List<Long> oldItemIds = oldItemVOS.stream().map(EvaluateItemVO::getItemId).collect(Collectors.toList());
 
+        // 处理评议人
+        List<EvaluatePerson> newPersons = evaluateOrderVO.getPersons();
+        List<Long> newPersonIds = newPersons.stream().map(EvaluatePerson::getPersonId).filter(Objects::nonNull).collect(Collectors.toList());
+        List<Long> oldPersonIds = oldOrderVO.getPersons().stream().map(EvaluatePerson::getPersonId).collect(Collectors.toList());
+        List<Long> removePersonIds = oldPersonIds.stream().filter(item -> !newPersonIds.contains(item)).collect(Collectors.toList());
+        personService.removeBatchByIds(removePersonIds);
+        personService.saveOrUpdateBatch(newPersons);
+
+
         // 处理item
         List<EvaluateItemVO> newItemVOS = evaluateOrderVO.getItems();
         List<Long> newItemIds = newItemVOS.stream().map(EvaluateItemVO::getItemId).filter(Objects::nonNull).collect(Collectors.toList());
@@ -166,17 +176,26 @@ public class EvaluateOrderServiceImpl extends ServiceImpl<EvaluateOrderMapper, E
         for (int i = 0; i < saveAndUpdateItems.size(); i++) {
             EvaluateItemVO newItem = newItemVOS.get(i);
             int finalI = i;
-            newItem.getOptions().forEach(newOption -> {
-                newOption.setItemId(saveAndUpdateItems.get(finalI).getItemId());
-                newOption.setOrderId(evaluateOrderVO.getOrderId());
-            });
+            if (!CollectionUtils.isEmpty(newItem.getOptions())) {
+                newItem.getOptions().forEach(newOption -> {
+                    newOption.setItemId(saveAndUpdateItems.get(finalI).getItemId());
+                    newOption.setOrderId(evaluateOrderVO.getOrderId());
+                });
+            }
         }
 
         //处理option
 
-        List<EvaluateItemOption> options = newItemVOS.stream().flatMap(itemVO -> itemVO.getOptions().stream()).collect(Collectors.toList());
-        evaluateItemOptionService.saveOrUpdateBatch(options);
-
+        List<EvaluateItemOption> options = newItemVOS.stream().flatMap(itemVO -> {
+            if (!CollectionUtils.isEmpty(itemVO.getOptions())) {
+                return itemVO.getOptions().stream();
+            }else {
+                return Stream.empty();
+            }
+        }).collect(Collectors.toList());
+        if (!CollectionUtils.isEmpty(options)) {
+            evaluateItemOptionService.saveOrUpdateBatch(options);
+        }
         return 1;
     }
 
