@@ -69,7 +69,9 @@ public class EvaluateOrderServiceImpl extends ServiceImpl<EvaluateOrderMapper, E
 
         List<EvaluatePerson> persons = evaluateOrderVO.getPersons();
         persons.forEach(person -> person.setOrderId(evaluateOrder.getOrderId()));
-        personService.saveBatch(persons);
+        if (!personService.saveBatch(persons)) {
+            return 0;
+        }
 
         List<EvaluateItemVO> itemVOS = evaluateOrderVO.getItems();
         List<EvaluateItem> itemList = itemVOS.stream().map(itemVO -> {
@@ -92,8 +94,10 @@ public class EvaluateOrderServiceImpl extends ServiceImpl<EvaluateOrderMapper, E
             });
             evaluateItemOptions.addAll(itemOptions);
         }
-        if (!evaluateItemOptionService.saveBatch(evaluateItemOptions)) {
-            return 0;
+        if (!CollectionUtils.isEmpty(evaluateItemOptions)) {
+            if (!evaluateItemOptionService.saveBatch(evaluateItemOptions)) {
+                return 0;
+            }
         }
         return 1;
     }
@@ -114,9 +118,13 @@ public class EvaluateOrderServiceImpl extends ServiceImpl<EvaluateOrderMapper, E
         EvaluateOrderVO orderVO = new EvaluateOrderVO();
         BeanUtils.copyProperties(order, orderVO);
 
+        LambdaQueryWrapper<EvaluatePerson> personWrapper = new LambdaQueryWrapper<>();
+        personWrapper.eq(EvaluatePerson::getOrderId, orderId);
+        List<EvaluatePerson> persons = personService.list(personWrapper);
+        orderVO.setPersons(persons);
+
         LambdaQueryWrapper<EvaluateItem> itemLambdaQueryWrapper = new LambdaQueryWrapper<>();
         itemLambdaQueryWrapper.eq(EvaluateItem::getOrderId, orderId);
-        itemLambdaQueryWrapper.eq(EvaluateItem::getDeleted, Boolean.FALSE);
         List<EvaluateItem> evaluateItems = evaluateItemService.list(itemLambdaQueryWrapper);
         List<EvaluateItemVO> itemVOS = BeanUtil.copyList(evaluateItems, EvaluateItemVO.class);
 
@@ -174,18 +182,10 @@ public class EvaluateOrderServiceImpl extends ServiceImpl<EvaluateOrderMapper, E
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public boolean publish(Long orderId, Integer codeNum, Integer codeCount) {
+    public boolean publish(Long orderId, List<EvaluateOrderCode> codes) {
 
-        List<EvaluateOrderCode> orderCodes = new ArrayList<>();
-        for (int i = 0; i < codeNum; i++) {
-            String code = RandomUtil.randomUpperAndNumber(6);
-            EvaluateOrderCode orderCode = new EvaluateOrderCode();
-            orderCode.setCode(code);
-            orderCode.setOrderId(orderId);
-            orderCode.setCount(codeCount);
-            orderCodes.add(orderCode);
-        }
-        evaluateOrderCodeService.saveBatch(orderCodes);
+        codes.forEach(code -> code.setOrderId(orderId));
+        evaluateOrderCodeService.saveBatch(codes);
 
         LambdaUpdateWrapper<EvaluateOrder> updateWrapper = new LambdaUpdateWrapper<EvaluateOrder>().eq(EvaluateOrder::getOrderId, orderId);
         updateWrapper.set(EvaluateOrder::getStatus, EvaluateStatus.STATUS_PUBLISHED);

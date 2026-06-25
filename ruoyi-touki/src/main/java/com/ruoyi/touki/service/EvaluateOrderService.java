@@ -21,11 +21,11 @@ public interface EvaluateOrderService extends IService<EvaluateOrder> {
 
     int updateOrder(EvaluateOrderVO evaluateOrder);
 
-    boolean publish(Long orderId, Integer codeNum, Integer codeCount);
-
     List<EvaluateOrderCode> codeInfo(Long orderId);
 
     boolean verificationCode(String intermediateCode, String randomCode);
 
     EvaluateOrderVO selectOneByIntermediateCode(String intermediateCode);
+
+    boolean publish(Long orderId, List<EvaluateOrderCode> orderCodes);
 }

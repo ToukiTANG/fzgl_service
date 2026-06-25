@@ -69,8 +69,8 @@ public class EvaluateOrderController extends BaseController {
     @PostMapping("publish")
     @PreAuthorize("@ss.hasPermi('evaluate:order:update')")
     @Log(title = "评议单管理", businessType = BusinessType.PUBLISH)
-    public AjaxResult publish(@RequestParam Long orderId, @RequestParam Integer codeNum, @RequestParam Integer codeCount) {
-        if (evaluateOrderService.publish(orderId, codeNum, codeCount)) {
+    public AjaxResult publish(@RequestParam Long orderId, @RequestBody List<EvaluateOrderCode> orderCodes) {
+        if (evaluateOrderService.publish(orderId,orderCodes)) {
             return success();
         } else {
             return error("发布评议单'" + orderId + "'失败，请联系管理员");
