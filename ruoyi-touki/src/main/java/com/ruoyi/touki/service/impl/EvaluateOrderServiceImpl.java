@@ -4,17 +4,11 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.ruoyi.touki.constant.EvaluateStatus;
-import com.ruoyi.touki.domain.EvaluateItem;
-import com.ruoyi.touki.domain.EvaluateItemOption;
-import com.ruoyi.touki.domain.EvaluateOrder;
-import com.ruoyi.touki.domain.EvaluateOrderCode;
+import com.ruoyi.touki.domain.*;
 import com.ruoyi.touki.domain.vo.EvaluateItemVO;
 import com.ruoyi.touki.domain.vo.EvaluateOrderVO;
 import com.ruoyi.touki.mapper.EvaluateOrderMapper;
-import com.ruoyi.touki.service.EvaluateItemOptionService;
-import com.ruoyi.touki.service.EvaluateItemService;
-import com.ruoyi.touki.service.EvaluateOrderCodeService;
-import com.ruoyi.touki.service.EvaluateOrderService;
+import com.ruoyi.touki.service.*;
 import com.ruoyi.touki.utils.BeanUtil;
 import com.ruoyi.touki.utils.RandomUtil;
 import org.springframework.beans.BeanUtils;
@@ -38,12 +32,14 @@ public class EvaluateOrderServiceImpl extends ServiceImpl<EvaluateOrderMapper, E
     private final EvaluateItemService evaluateItemService;
     private final EvaluateItemOptionService evaluateItemOptionService;
     private final EvaluateOrderCodeService evaluateOrderCodeService;
+    private final EvaluatePersonService personService;
 
     public EvaluateOrderServiceImpl(EvaluateItemService evaluateItemService, EvaluateItemOptionService evaluateItemOptionService,
-                                    EvaluateOrderCodeService evaluateOrderCodeService) {
+                                    EvaluateOrderCodeService evaluateOrderCodeService, EvaluatePersonService personService) {
         this.evaluateItemService = evaluateItemService;
         this.evaluateItemOptionService = evaluateItemOptionService;
         this.evaluateOrderCodeService = evaluateOrderCodeService;
+        this.personService = personService;
     }
 
     @Override
@@ -52,10 +48,6 @@ public class EvaluateOrderServiceImpl extends ServiceImpl<EvaluateOrderMapper, E
         queryWrapper.eq(!ObjectUtils.isEmpty(evaluateOrder.getOrderId()), EvaluateOrder::getOrderId, evaluateOrder.getOrderId());
         queryWrapper.eq(!ObjectUtils.isEmpty(evaluateOrder.getIntermediateCode()), EvaluateOrder::getIntermediateCode, evaluateOrder.getIntermediateCode());
         queryWrapper.like(!ObjectUtils.isEmpty(evaluateOrder.getEvaluateName()), EvaluateOrder::getEvaluateName, evaluateOrder.getEvaluateName());
-        queryWrapper.like(!ObjectUtils.isEmpty(evaluateOrder.getEvaluatedPersonName()), EvaluateOrder::getEvaluatedPersonName,
-                evaluateOrder.getEvaluatedPersonName());
-        queryWrapper.like(!ObjectUtils.isEmpty(evaluateOrder.getEvaluatedPersonDepartment()), EvaluateOrder::getEvaluatedPersonDepartment,
-                evaluateOrder.getEvaluatedPersonDepartment());
         queryWrapper.eq(!ObjectUtils.isEmpty(evaluateOrder.getDeadline()), EvaluateOrder::getDeadline, evaluateOrder.getDeadline());
         queryWrapper.eq(!ObjectUtils.isEmpty(evaluateOrder.getStatus()), EvaluateOrder::getStatus, evaluateOrder.getStatus());
         queryWrapper.like(!ObjectUtils.isEmpty(evaluateOrder.getRemark()), EvaluateOrder::getRemark, evaluateOrder.getRemark());
@@ -74,6 +66,10 @@ public class EvaluateOrderServiceImpl extends ServiceImpl<EvaluateOrderMapper, E
         if (!save(evaluateOrder)) {
             return 0;
         }
+
+        List<EvaluatePerson> persons = evaluateOrderVO.getPersons();
+        persons.forEach(person -> person.setOrderId(evaluateOrder.getOrderId()));
+        personService.saveBatch(persons);
 
         List<EvaluateItemVO> itemVOS = evaluateOrderVO.getItems();
         List<EvaluateItem> itemList = itemVOS.stream().map(itemVO -> {

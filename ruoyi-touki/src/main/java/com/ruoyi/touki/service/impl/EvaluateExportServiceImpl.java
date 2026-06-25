@@ -48,10 +48,6 @@ public class EvaluateExportServiceImpl {
 
         sheet.createRow(rowNum++).createCell(0).setCellValue("中间码：" + order.getIntermediateCode());
 
-        sheet.createRow(rowNum++).createCell(0).setCellValue("被评议人：" + order.getEvaluatedPersonName());
-
-        sheet.createRow(rowNum++).createCell(0).setCellValue("被评议部门：" + order.getEvaluatedPersonDepartment());
-
         sheet.createRow(rowNum++).createCell(0).setCellValue("截止日期：" + order.getDeadline());
 
         sheet.createRow(rowNum++).createCell(0).setCellValue("回执数量：" + receipts.size());

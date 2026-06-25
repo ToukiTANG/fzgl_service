@@ -26,13 +26,9 @@ public class EvaluateOrder extends MyBaseEntity {
      */
     private String evaluateName;
     /**
-     * 被评议人姓名
+     * 评议类型
      */
-    private String evaluatedPersonName;
-    /**
-     * 被评议人部门
-     */
-    private String evaluatedPersonDepartment;
+    private Integer type;
     /**
      * 评议截止日期
      */

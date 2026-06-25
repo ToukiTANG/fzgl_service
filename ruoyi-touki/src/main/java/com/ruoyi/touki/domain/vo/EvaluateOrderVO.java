@@ -1,5 +1,6 @@
 package com.ruoyi.touki.domain.vo;
 
+import com.ruoyi.touki.domain.EvaluatePerson;
 import com.ruoyi.touki.domain.MyBaseEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -22,13 +23,9 @@ public class EvaluateOrderVO extends MyBaseEntity{
      */
     private String evaluateName;
     /**
-     * 被评议人姓名
+     * 评议类型
      */
-    private String evaluatedPersonName;
-    /**
-     * 被评议人部门
-     */
-    private String evaluatedPersonDepartment;
+    private Integer type;
     /**
      * 评议截止日期
      */
@@ -45,4 +42,5 @@ public class EvaluateOrderVO extends MyBaseEntity{
      * 评议内容
      */
     List<EvaluateItemVO> items;
+    List<EvaluatePerson> persons;
 }
