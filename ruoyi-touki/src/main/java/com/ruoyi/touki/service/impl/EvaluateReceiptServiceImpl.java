@@ -69,27 +69,4 @@ public class EvaluateReceiptServiceImpl extends ServiceImpl<EvaluateReceiptMappe
         return paper;
     }
 
-    @Override
-    public List<EvaluateExport> export(EvaluateReceipt receipt) {
-        // 这里一定只会有一个评议
-        List<EvaluateReceipt> receipts = selectReceiptList(receipt);
-        Long orderId = receipts.get(0).getOrderId();
-        EvaluateOrderVO orderVO = orderService.selectById(orderId);
-
-        List<Long> receiptIds = receipts.stream().map(EvaluateReceipt::getReceiptId).collect(Collectors.toList());
-        LambdaQueryWrapper<EvaluateAnswer> answerWrapper = new LambdaQueryWrapper<>();
-        answerWrapper.in(EvaluateAnswer::getReceiptId, receiptIds);
-        List<EvaluateAnswer> answers = answerService.list(answerWrapper);
-
-        List<EvaluateItemVO> itemVOS = orderVO.getItems();
-        Map<Long, Map<String, String>> optionMap = orderVO.getItems().stream().collect(Collectors.toMap(EvaluateItemVO::getItemId,
-                item -> item.getOptions().stream().collect(Collectors.toMap(EvaluateItemOption::getOptionCode, EvaluateItemOption::getOptionContent))));
-
-        Map<Long, Map<Long, String>> answerMap = answers.stream()
-                .collect(Collectors.groupingBy(EvaluateAnswer::getReceiptId, Collectors.toMap(EvaluateAnswer::getItemId, EvaluateAnswer::getContent)));
-
-
-        return Collections.emptyList();
-    }
-
 }

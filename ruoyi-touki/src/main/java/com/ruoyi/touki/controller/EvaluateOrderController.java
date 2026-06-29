@@ -67,7 +67,7 @@ public class EvaluateOrderController extends BaseController {
     }
 
     @PostMapping("publish")
-    @PreAuthorize("@ss.hasPermi('evaluate:order:update')")
+    @PreAuthorize("@ss.hasPermi('evaluate:order:publish')")
     @Log(title = "评议单管理", businessType = BusinessType.PUBLISH)
     public AjaxResult publish(@RequestParam Long orderId, @RequestBody List<EvaluateOrderCode> orderCodes) {
         if (evaluateOrderService.publish(orderId,orderCodes)) {

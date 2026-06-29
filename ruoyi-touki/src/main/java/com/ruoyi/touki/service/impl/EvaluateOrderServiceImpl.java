@@ -3,7 +3,7 @@ package com.ruoyi.touki.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.ruoyi.touki.constant.EvaluateStatus;
+import com.ruoyi.touki.constant.EvaluateOrderStatus;
 import com.ruoyi.touki.domain.*;
 import com.ruoyi.touki.domain.vo.EvaluateItemVO;
 import com.ruoyi.touki.domain.vo.EvaluateOrderVO;
@@ -142,6 +142,8 @@ public class EvaluateOrderServiceImpl extends ServiceImpl<EvaluateOrderMapper, E
             });
         }
         orderVO.setItems(itemVOS);
+
+        orderVO.setOrderCodes(codeInfo(orderId));
         return orderVO;
     }
 
@@ -189,7 +191,7 @@ public class EvaluateOrderServiceImpl extends ServiceImpl<EvaluateOrderMapper, E
         List<EvaluateItemOption> options = newItemVOS.stream().flatMap(itemVO -> {
             if (!CollectionUtils.isEmpty(itemVO.getOptions())) {
                 return itemVO.getOptions().stream();
-            }else {
+            } else {
                 return Stream.empty();
             }
         }).collect(Collectors.toList());
@@ -207,7 +209,7 @@ public class EvaluateOrderServiceImpl extends ServiceImpl<EvaluateOrderMapper, E
         evaluateOrderCodeService.saveBatch(codes);
 
         LambdaUpdateWrapper<EvaluateOrder> updateWrapper = new LambdaUpdateWrapper<EvaluateOrder>().eq(EvaluateOrder::getOrderId, orderId);
-        updateWrapper.set(EvaluateOrder::getStatus, EvaluateStatus.STATUS_PUBLISHED);
+        updateWrapper.set(EvaluateOrder::getStatus, EvaluateOrderStatus.STATUS_PUBLISHED);
         return update(updateWrapper);
     }
 

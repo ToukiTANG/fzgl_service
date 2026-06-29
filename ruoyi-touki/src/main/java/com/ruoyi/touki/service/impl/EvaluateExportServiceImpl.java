@@ -1,175 +1,138 @@
 package com.ruoyi.touki.service.impl;
 
-import com.ruoyi.common.utils.DateUtils;
-import com.ruoyi.touki.domain.EvaluateAnswer;
-import com.ruoyi.touki.domain.EvaluateItemOption;
-import com.ruoyi.touki.domain.EvaluateReceipt;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.ruoyi.touki.domain.*;
+import com.ruoyi.touki.domain.excel.ExportContext;
+import com.ruoyi.touki.domain.excel.PoiExportWriter;
 import com.ruoyi.touki.domain.vo.EvaluateItemVO;
 import com.ruoyi.touki.domain.vo.EvaluateOrderVO;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import com.ruoyi.touki.service.EvaluateAnswerService;
+import com.ruoyi.touki.service.EvaluateOrderCodeService;
+import com.ruoyi.touki.service.EvaluateOrderService;
+import com.ruoyi.touki.service.EvaluateReceiptService;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletResponse;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
 public class EvaluateExportServiceImpl {
-    public void exportExcel(EvaluateOrderVO order, List<EvaluateReceipt> receipts, List<EvaluateAnswer> answers, Map<Long, Map<String, String>> optionMap,
-                            HttpServletResponse response) throws Exception {
-        List<EvaluateItemVO> itemVOS = order.getItems();
+    private final EvaluateReceiptService receiptService;
+    private final EvaluateOrderService orderService;
+    private final EvaluateAnswerService answerService;
+    private final EvaluateOrderCodeService orderCodeService;
+    private final PoiExportWriter poiExportWriter;
 
-        // =========================
-        // 构建答案索引
-        // receiptId -> itemId -> answer
-        // =========================
-        Map<Long, Map<Long, String>> answerMap = answers.stream().collect(
-                Collectors.groupingBy(EvaluateAnswer::getReceiptId, Collectors.toMap(EvaluateAnswer::getItemId, EvaluateAnswer::getContent, (v1, v2) -> v1)));
+    public EvaluateExportServiceImpl(EvaluateReceiptService receiptService, EvaluateOrderService orderService, EvaluateAnswerService answerService,
+                                     EvaluateOrderCodeService orderCodeService, PoiExportWriter poiExportWriter) {
+        this.receiptService = receiptService;
+        this.orderService = orderService;
+        this.answerService = answerService;
+        this.orderCodeService = orderCodeService;
+        this.poiExportWriter = poiExportWriter;
+    }
 
-        // =========================
-        // 创建Excel
-        // =========================
-        Workbook workbook = new SXSSFWorkbook();
-        Sheet sheet = workbook.createSheet("评议结果");
+    public void exportExcel(String intermediateCode, HttpServletResponse response) throws IOException {
+        // 获取数据
+        LambdaQueryWrapper<EvaluateReceipt> receiptWrapper = new LambdaQueryWrapper<>();
+        receiptWrapper.eq(EvaluateReceipt::getIntermediateCode, intermediateCode);
+        List<EvaluateReceipt> receipts = receiptService.list(receiptWrapper);
+        Long orderId = receipts.get(0).getOrderId();
+        LambdaQueryWrapper<EvaluateAnswer> answerWrapper = new LambdaQueryWrapper<>();
+        List<Long> receiptIds = receipts.stream().map(EvaluateReceipt::getReceiptId).collect(Collectors.toList());
+        answerWrapper.in(EvaluateAnswer::getReceiptId, receiptIds);
+        List<EvaluateAnswer> answers = answerService.list(answerWrapper);
+        EvaluateOrderVO orderVO = orderService.selectById(orderId);
+        LambdaQueryWrapper<EvaluateOrderCode> orderCodeWrapper = new LambdaQueryWrapper<>();
+        orderCodeWrapper.eq(EvaluateOrderCode::getOrderId, orderId);
+        List<EvaluateOrderCode> codes = orderCodeService.list(orderCodeWrapper);
 
-        // =========================
-        // 表头
-        // =========================
-        int rowNum = 0;
+        ExportContext context = buildContext(orderVO, codes, receipts, answers);
 
-        sheet.createRow(rowNum++).createCell(0).setCellValue("评议事项：" + order.getEvaluateName());
+        // 导出
+        poiExportWriter.write(context, response);
+    }
 
-        sheet.createRow(rowNum++).createCell(0).setCellValue("评议单ID：" + order.getOrderId());
+    private ExportContext buildContext(EvaluateOrderVO order, List<EvaluateOrderCode> codes, List<EvaluateReceipt> receipts, List<EvaluateAnswer> answers) {
 
-        sheet.createRow(rowNum++).createCell(0).setCellValue("中间码：" + order.getIntermediateCode());
+        ExportContext context = new ExportContext();
 
-        sheet.createRow(rowNum++).createCell(0).setCellValue("截止日期：" + order.getDeadline());
+        context.setOrder(order);
 
-        sheet.createRow(rowNum++).createCell(0).setCellValue("回执数量：" + receipts.size());
-        
-        sheet.createRow(rowNum++).createCell(0).setCellValue("导出时间：" + DateUtils.parseDateToStr("yyyy-MM-dd HH:mm:ss", new Date()));
+        context.setCodes(codes);
 
-        rowNum++;
-        Row header = sheet.createRow(rowNum);
+        context.setReceipts(receipts);
 
-        int colIndex = 0;
+        context.setAnswers(answers);
 
-        header.createCell(colIndex++).setCellValue("随机码");
+        context.setPersonMap(buildPersonMap(order));
 
-        header.createCell(colIndex++).setCellValue("提交时间");
+        context.setItemMap(buildItemMap(order));
 
-        for (EvaluateItemVO item : itemVOS) {
-            header.createCell(colIndex++).setCellValue(buildHeader(item));
-        }
+        context.setReceiptMap(buildReceiptMap(receipts));
 
-        // =========================
-        // 数据
-        // =========================
-        for (int rowIndex = 0; rowIndex < receipts.size(); rowIndex++) {
+        context.setCodeMap(buildCodeMap(codes));
 
-            EvaluateReceipt receipt = receipts.get(rowIndex);
+        context.setOptionMap(buildOptionMap(order));
 
-            Row row = sheet.createRow(rowNum + rowIndex + 1);
+        context.setPersonItemAnswerMap(buildPersonItemAnswerMap(answers));
 
-            int col = 0;
+        context.setPersonReceiptAnswerMap(buildPersonReceiptAnswerMap(answers));
 
-            // 随机码
-            row.createCell(col++).setCellValue(receipt.getRandomCode());
+        return context;
+    }
 
-            // 提交时间
-            row.createCell(col++).setCellValue(receipt.getCreateTime() == null ? "" : DateUtils.parseDateToStr("yyyy-MM-dd HH:mm:ss", receipt.getCreateTime()));
+    private Map<Long, EvaluatePerson> buildPersonMap(EvaluateOrderVO order) {
 
-            Map<Long, String> receiptAnswerMap = answerMap.get(receipt.getReceiptId());
+        return order.getPersons().stream().collect(Collectors.toMap(EvaluatePerson::getPersonId, Function.identity()));
+    }
 
-            // 按题目顺序写答案
-            for (EvaluateItemVO item : itemVOS) {
+    private Map<Long, EvaluateItemVO> buildItemMap(EvaluateOrderVO order) {
 
-                String answer = "";
+        return order.getItems().stream().collect(Collectors.toMap(EvaluateItemVO::getItemId, Function.identity()));
+    }
 
-                if (receiptAnswerMap != null) {
-                    answer = receiptAnswerMap.getOrDefault(item.getItemId(), "");
-                }
+    private Map<Long, EvaluateReceipt> buildReceiptMap(List<EvaluateReceipt> receipts) {
 
-                String displayValue = convertAnswer(item, answer, optionMap);
+        return receipts.stream().collect(Collectors.toMap(EvaluateReceipt::getReceiptId, Function.identity()));
+    }
 
-                row.createCell(col++).setCellValue(displayValue);
+    private Map<String, EvaluateOrderCode> buildCodeMap(List<EvaluateOrderCode> codes) {
+
+        return codes.stream().collect(Collectors.toMap(EvaluateOrderCode::getCode, Function.identity()));
+    }
+
+    private Map<Long, Map<String, String>> buildOptionMap(EvaluateOrderVO order) {
+
+        Map<Long, Map<String, String>> optionMap = new HashMap<>();
+
+        for (EvaluateItemVO item : order.getItems()) {
+
+            if (item.getOptions() == null || item.getOptions().isEmpty()) {
+                continue;
             }
+
+            Map<String, String> map = item.getOptions().stream()
+                    .collect(Collectors.toMap(EvaluateItemOption::getOptionCode, EvaluateItemOption::getOptionContent));
+
+            optionMap.put(item.getItemId(), map);
         }
 
-        // =========================
-        // 列宽
-        // =========================
-        for (int i = 0; i < itemVOS.size() + 2; i++) {
-            sheet.setColumnWidth(i, 8000);
-        }
-
-        // =========================
-        // 下载
-        // =========================
-        String fileName = URLEncoder.encode(order.getEvaluateName() + "_评议结果", String.valueOf(StandardCharsets.UTF_8));
-
-        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-
-        response.setCharacterEncoding("utf-8");
-
-        response.setHeader("Content-Disposition", "attachment;filename=" + fileName + ".xlsx");
-
-        workbook.write(response.getOutputStream());
-
-        workbook.close();
+        return optionMap;
     }
 
-    private String convertAnswer(EvaluateItemVO item, String answer, Map<Long, Map<String, String>> optionMap) {
+    private Map<Long, Map<Long, List<EvaluateAnswer>>> buildPersonItemAnswerMap(List<EvaluateAnswer> answers) {
 
-        if (answer == null || answer.trim().isEmpty()) {
-            return "";
-        }
-
-        // 填空题
-        if (item.getItemType() == 2) {
-            return answer;
-        }
-
-        Map<String, String> option = optionMap.get(item.getItemId());
-
-        if (option == null) {
-            return answer;
-        }
-
-        // 单选
-        if (item.getItemType() == 0) {
-
-            return answer + "." + option.getOrDefault(answer, "");
-        }
-
-        // 多选
-        if (item.getItemType() == 1) {
-
-            return Arrays.stream(answer.split(",")).map(code -> code + "." + option.getOrDefault(code, "")).collect(Collectors.joining("\n"));
-        }
-
-        return answer;
+        return answers.stream().collect(Collectors.groupingBy(EvaluateAnswer::getPersonId, Collectors.groupingBy(EvaluateAnswer::getItemId)));
     }
 
-    private String buildHeader(EvaluateItemVO item) {
+    private Map<Long, Map<Long, List<EvaluateAnswer>>> buildPersonReceiptAnswerMap(List<EvaluateAnswer> answers) {
 
-        // 填空题不拼接选项
-        if (item.getItemType() == 2) {
-            return item.getTitle();
-        }
-
-        if (item.getOptions() == null || item.getOptions().isEmpty()) {
-            return item.getTitle();
-        }
-
-        String options = item.getOptions().stream().sorted(Comparator.comparing(EvaluateItemOption::getSortNum))
-                .map(option -> option.getOptionCode() + "." + option.getOptionContent()).collect(Collectors.joining(" "));
-
-        return item.getTitle() + "（" + options + "）";
+        return answers.stream().collect(Collectors.groupingBy(EvaluateAnswer::getPersonId, Collectors.groupingBy(EvaluateAnswer::getReceiptId)));
     }
 }

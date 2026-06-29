@@ -1,6 +1,6 @@
 package com.ruoyi.touki.constant;
 
-public abstract class EvaluateStatus {
+public abstract class EvaluateOrderStatus {
     //草稿
     public static final int  STATUS_DRAFT = 0;
     //已发布

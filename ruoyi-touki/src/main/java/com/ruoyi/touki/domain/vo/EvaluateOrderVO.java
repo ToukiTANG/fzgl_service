@@ -1,5 +1,6 @@
 package com.ruoyi.touki.domain.vo;
 
+import com.ruoyi.touki.domain.EvaluateOrderCode;
 import com.ruoyi.touki.domain.EvaluatePerson;
 import com.ruoyi.touki.domain.MyBaseEntity;
 import lombok.Data;
@@ -12,7 +13,7 @@ import java.util.List;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class EvaluateOrderVO extends MyBaseEntity{
+public class EvaluateOrderVO extends MyBaseEntity {
     private Long orderId;
     /**
      * 中间码
@@ -43,4 +44,5 @@ public class EvaluateOrderVO extends MyBaseEntity{
      */
     List<EvaluateItemVO> items;
     List<EvaluatePerson> persons;
+    List<EvaluateOrderCode> orderCodes;
 }
