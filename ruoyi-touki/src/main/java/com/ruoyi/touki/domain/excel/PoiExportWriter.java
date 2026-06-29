@@ -17,10 +17,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
@@ -45,8 +42,18 @@ public class PoiExportWriter {
 
         style.setTitleStyle(createTitleStyle(workbook));
         style.setHeadStyle(createHeadStyle(workbook));
-        style.setBodyStyle(createBodyStyle(workbook));
+        CellStyle bodyStyle = createBodyStyle(workbook);
+        style.setBodyStyle(bodyStyle);
+        CreationHelper creationHelper = workbook.getCreationHelper();
 
+        CellStyle dateStyle = workbook.createCellStyle();
+        dateStyle.cloneStyleFrom(bodyStyle);
+
+        short format = creationHelper.createDataFormat().getFormat("yyyy-MM-dd HH:mm:ss");
+
+        dateStyle.setDataFormat(format);
+
+        style.setDateStyle(dateStyle);
 
         return style;
     }
@@ -343,9 +350,9 @@ public class PoiExportWriter {
         } else if (value instanceof Double) {
             cell.setCellValue(BigDecimal.valueOf((Double) value).setScale(2, RoundingMode.HALF_UP).doubleValue());
         } else if (value instanceof Number) {
-
             cell.setCellValue(((Number) value).doubleValue());
-
+        } else if (value instanceof Date) {
+            cell.setCellValue((Date) value);
         } else {
 
             cell.setCellValue(value.toString());
@@ -424,7 +431,7 @@ public class PoiExportWriter {
             col = 0;
 
             createCell(row, col++, receipt.getRandomCode(), style.getBodyStyle());
-            createCell(row, col++, receipt.getCreateTime(), style.getBodyStyle());
+            createCell(row, col++, receipt.getCreateTime(), style.getDateStyle());
 
             for (EvaluateItemVO item : context.getOrder().getItems()) {
 

@@ -21,4 +21,9 @@ public class ExportStyle {
      */
     private CellStyle bodyStyle;
 
+    /**
+     * 日期样式
+     */
+    private CellStyle dateStyle;
+
 }
