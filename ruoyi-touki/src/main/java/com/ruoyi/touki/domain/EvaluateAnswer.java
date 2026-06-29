@@ -20,6 +20,10 @@ public class EvaluateAnswer extends MyBaseEntity {
      */
     private Long itemId;
     /**
+     * 题目类型
+     */
+    private Long itemType;
+    /**
      * 被评议人id
      */
     private Long personId;
