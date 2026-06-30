@@ -29,6 +29,9 @@ public class EvaluateExecutionController extends BaseController {
             return error("您的中间码与随机码不匹配，请核实。");
         }
         EvaluateOrderVO orderVO = orderService.selectOneByIntermediateCode(intermediateCode);
+        if(orderVO == null){
+            return error("该次评议已结束，请联系管理员。");
+        }
         return AjaxResult.success(orderVO);
     }
     

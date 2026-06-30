@@ -241,7 +241,9 @@ public class EvaluateOrderServiceImpl extends ServiceImpl<EvaluateOrderMapper, E
         LambdaQueryWrapper<EvaluateOrder> orderWrapper = new LambdaQueryWrapper<>();
         orderWrapper.eq(EvaluateOrder::getIntermediateCode, intermediateCode);
         EvaluateOrder order = getOne(orderWrapper);
-
+        if (order.getStatus().equals(EvaluateOrderStatus.STATUS_FINISHED)) {
+            return null;
+        }
         return selectById(order.getOrderId());
     }
 }
